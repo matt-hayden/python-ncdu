@@ -1,1 +1,2 @@
-from .reader import NcduReader as read
+from .reader import load
+

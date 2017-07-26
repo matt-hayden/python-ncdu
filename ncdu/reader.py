@@ -1,7 +1,17 @@
 #! /usr/bin/env python
+
+import json
 import os, os.path
 import shlex
 import re
+
+def load(arg, **kwargs):
+	if isinstance(arg, str):
+		with open(arg) as fi:
+			content = json.load(fi)
+	else:
+		content = arg
+	return NcduReader(content, **kwargs)
 
 class NcduFile: # leaf
 	def __init__(self, attribs):
@@ -42,7 +52,13 @@ class NcduNode:
 		# d can be modified in-place
 		for c in d:
 			yield from c.walk(prefix=r)
-	def printf(self, spec=('%q\n')):
+	def printf(self, spec='%q\n'):
+		"""
+		Limited form of `find -printf ...` that can format certain file characteristics for text output.
+		Examples:
+			ncduprintf foo.ncdu '%q\n' # print endline-separated shell-quoted filenames
+			ncduprintf foo.ncdu '%h|%f|%i\000' # print pipe-delimited directory, filename, inode, NULL-separated
+		"""
 		if isinstance(spec, str):
 			spec = [ p for p in re.split('([%].)', spec) if p ]
 		for r, ds, fs in self.walk():
